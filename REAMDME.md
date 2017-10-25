@@ -28,7 +28,8 @@ object_detection API implemented by google
 ### My module
 
 #### myutil
-downloadutil.py: helper function for downloading model
+* downloadutil.py: helper function for downloading model
+* fps_measure.py: utility to measure fps
 
 #### object_detection_tf.py
 main module for detecting object
