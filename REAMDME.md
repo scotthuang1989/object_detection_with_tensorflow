@@ -41,8 +41,3 @@ run following command
 python object_detection_tf.py -v /home/scott/Videos/S11E03.mp4
 ```
 you need replace the video file with your choice
-
-
-## Todo list
-
-* handle exit more gracefully

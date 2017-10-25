@@ -13,7 +13,7 @@ import argparse
 import cv2
 
 
-from myutil import downloadutil
+from myutil import downloadutil, fps_measure
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
@@ -147,6 +147,7 @@ category_index = load_label_map(label_map_name='mscoco_label_map.pbtxt', num_cla
 image_q = Queue(maxsize=200)
 processed_q = Queue(maxsize=200)
 
+
 #a process that put imge into image_q
 
 def image_worker(image_q, video_file):
@@ -163,7 +164,7 @@ input_process = multiprocessing.Process(target=image_worker, args=(image_q, args
 
 # a process to do the detection_graph
 
-def object_detection_worker(image_q, processed_q, detection_graph, category_index):
+def object_detection_worker(image_q, processed_q, detection_graph, category_index, fps=None):
     print("detection worker start")
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
@@ -172,19 +173,27 @@ def object_detection_worker(image_q, processed_q, detection_graph, category_inde
         frame = image_q.get()
         t = time.time()
         ann_image = detect_object(detection_graph, sess, frame, category_index)
-        print("time for a frame:", time.time()-t)
         ann_image = cv2.cvtColor(ann_image, cv2.COLOR_RGB2BGR)
+        if fps:
+            fps.add_frame()
         processed_q.put(ann_image)
 
+
+fps = fps_measure.FPS()
+fps.start_count()
 detector_process = multiprocessing.Process(target=object_detection_worker,
-                    args=(image_q, processed_q, detection_graph, category_index))
+                    args=(image_q, processed_q, detection_graph, category_index, fps))
 
 input_process.start()
 detector_process.start()
 
+
 while True:
     ann_image = processed_q.get()
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(ann_image,'FPS:{}'.format(int(fps.get_fps())),(50,50), font, 2,(255,255,255),2,cv2.LINE_AA)
     cv2.imshow('frame', ann_image)
+    # print("fps is:", fps.get_fps())
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
