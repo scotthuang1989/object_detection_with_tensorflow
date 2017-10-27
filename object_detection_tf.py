@@ -9,11 +9,12 @@ import multiprocessing
 from multiprocessing import Queue
 import time
 import argparse
+import logging
 
 import cv2
 
 
-from myutil import downloadutil, fps_measure
+from myutil import downloadutil, fps_measure, queue_seq
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
@@ -145,7 +146,8 @@ detection_graph = load_graph(model_name='ssd_mobilenet_v1_coco_11_06_2017')
 category_index = load_label_map(label_map_name='mscoco_label_map.pbtxt', num_class=NUM_CLASSES)
 
 image_q = Queue(maxsize=200)
-processed_q = Queue(maxsize=200)
+processed_q = queue_seq.Queue_Seq(maxsize=200)
+# processed_q = Queue(maxsize=200)
 
 
 #a process that put imge into image_q
@@ -154,10 +156,12 @@ def image_worker(image_q, video_file):
     print("image worker start")
     video_capture = cv2.VideoCapture(video_file)
     ret, frame = video_capture.read()
+    frame_count = 0
     while ret:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image_q.put(frame)
+        image_q.put((frame_count, frame))
         ret, frame = video_capture.read()
+        frame_count += 1
     video_capture.release()
 
 input_process = multiprocessing.Process(target=image_worker, args=(image_q, args.video))
@@ -170,26 +174,34 @@ def object_detection_worker(image_q, processed_q, detection_graph, category_inde
     config = tf.ConfigProto(gpu_options=gpu_options)
     sess = tf.Session(graph=detection_graph, config=config)
     while True:
-        frame = image_q.get()
+        frame_count, frame = image_q.get()
         t = time.time()
         ann_image = detect_object(detection_graph, sess, frame, category_index)
         ann_image = cv2.cvtColor(ann_image, cv2.COLOR_RGB2BGR)
         if fps:
             fps.add_frame()
-        processed_q.put(ann_image)
+        processed_q.put((frame_count, ann_image))
+
+# configure logger
+
+logging.basicConfig(
+    level=logging.INFO,
+)
 
 
 fps = fps_measure.FPS()
 fps.start_count()
-detector_process = multiprocessing.Process(target=object_detection_worker,
+detector_process = [multiprocessing.Process(target=object_detection_worker,
                     args=(image_q, processed_q, detection_graph, category_index, fps))
+                    for i in range(3)]
 
 input_process.start()
-detector_process.start()
+for p in detector_process:
+    p.start()
 
 
 while True:
-    ann_image = processed_q.get()
+    frame_count, ann_image = processed_q.get()
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(ann_image,'FPS:{}'.format(int(fps.get_fps())),(50,50), font, 2,(255,255,255),2,cv2.LINE_AA)
     cv2.imshow('frame', ann_image)
@@ -198,5 +210,7 @@ while True:
         break
 
 input_process.terminate()
-detector_process.terminate()
+for p in detector_process:
+    p.terminate()
+
 cv2.destroyAllWindows()
