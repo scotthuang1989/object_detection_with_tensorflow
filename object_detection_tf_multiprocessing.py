@@ -1,16 +1,13 @@
-import numpy as np
 import os
-import six.moves.urllib as urllib
-import sys
 import tarfile
 import tensorflow as tf
-import zipfile
 import multiprocessing
 from multiprocessing import Queue
 import time
 import argparse
 import logging
 
+import numpy as np
 import cv2
 
 
@@ -22,6 +19,8 @@ from object_detection.utils import visualization_utils as vis_util
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-v', '--video', type=str, required=True,
                         help="video file for detection")
+arg_parser.add_argument('-p', "--process", type=int, default=1,
+                        help="# of detection process")
 
 args = arg_parser.parse_args()
 
@@ -63,48 +62,6 @@ def load_label_map(label_map_name, num_class):
     category_index = label_map_util.create_category_index(categories)
     return category_index
 
-# def load_image_into_numpy_array(image):
-#     # import pdb; pdb.set_trace()
-#     # (im_width, im_height) = image.size
-#     (im_width, im_height) = image.shape
-#     # return np.array(image.getdata()).reshape(
-#     #                     (im_height, im_width, 3)).astype(np.uint8)
-#     return image.reshape((im_height, im_width, 3)).astype(np.uint8)
-
-# def detect_object(detection_graph, image, category_index):
-#     with detection_graph.as_default():
-#       with tf.Session(graph=detection_graph) as sess:
-#         # Definite input and output Tensors for detection_graph
-#         image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-#         # Each box represents a part of the image where a particular object was detected.
-#         detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-#         # Each score represent how level of confidence for each of the objects.
-#         # Score is shown on the result image, together with the class label.
-#         detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
-#         detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
-#         num_detections = detection_graph.get_tensor_by_name('num_detections:0')
-#         #   image = Image.open(image_path)
-#           # the array based representation of the image will be used later in order to prepare the
-#           # result image with boxes and labels on it.
-#         # image_np = load_image_into_numpy_array(image)
-#         image_np = image
-#         # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-#         image_np_expanded = np.expand_dims(image_np, axis=0)
-#         # Actual detection.
-#         (boxes, scores, classes, num) = sess.run(
-#           [detection_boxes, detection_scores, detection_classes, num_detections],
-#           feed_dict={image_tensor: image_np_expanded})
-#         # Visualization of the results of a detection.
-#         vis_util.visualize_boxes_and_labels_on_image_array(
-#           image_np,
-#           np.squeeze(boxes),
-#           np.squeeze(classes).astype(np.int32),
-#           np.squeeze(scores),
-#           category_index,
-#           use_normalized_coordinates=True,
-#           line_thickness=8,
-#           min_score_thresh = 0.7)
-#         return image_np
 
 def detect_object(detection_graph, sess, image, category_index):
     with detection_graph.as_default():
@@ -147,7 +104,6 @@ category_index = load_label_map(label_map_name='mscoco_label_map.pbtxt', num_cla
 
 image_q = Queue(maxsize=200)
 processed_q = queue_seq.Queue_Seq(maxsize=200)
-# processed_q = Queue(maxsize=200)
 
 
 #a process that put imge into image_q
@@ -182,35 +138,42 @@ def object_detection_worker(image_q, processed_q, detection_graph, category_inde
             fps.add_frame()
         processed_q.put((frame_count, ann_image))
 
-# configure logger
 
-logging.basicConfig(
-    level=logging.INFO,
-)
+def main():
+    # configure logger
+    logging.basicConfig(
+        level=logging.INFO,
+    )
 
+    # setup fps counter
+    fps = fps_measure.FPS()
+    fps.start_count()
+    detector_process = [multiprocessing.Process(target=object_detection_worker,
+                        args=(image_q, processed_q, detection_graph, category_index, fps))
+                        for i in range(args.process)]
 
-fps = fps_measure.FPS()
-fps.start_count()
-detector_process = [multiprocessing.Process(target=object_detection_worker,
-                    args=(image_q, processed_q, detection_graph, category_index, fps))
-                    for i in range(3)]
+    input_process.start()
+    for p in detector_process:
+        p.start()
 
-input_process.start()
-for p in detector_process:
-    p.start()
+    while True:
+        frame_count, ann_image = processed_q.get()
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(ann_image,'FPS:{}'.format(int(fps.get_fps())),(50,50), font, 2,(255,255,255),2,cv2.LINE_AA)
+        cv2.imshow('frame', ann_image)
+        # print("fps is:", fps.get_fps())
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
+    input_process.terminate()
+    for p in detector_process:
+        p.terminate()
 
-while True:
-    frame_count, ann_image = processed_q.get()
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(ann_image,'FPS:{}'.format(int(fps.get_fps())),(50,50), font, 2,(255,255,255),2,cv2.LINE_AA)
-    cv2.imshow('frame', ann_image)
-    # print("fps is:", fps.get_fps())
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    input_process.join()
+    for p in detector_process:
+        p.join()
 
-input_process.terminate()
-for p in detector_process:
-    p.terminate()
+    cv2.destroyAllWindows()
 
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()

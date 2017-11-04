@@ -100,3 +100,4 @@ ENV/
 # mypy
 .mypy_cache/
 *ssd_mobilenet_v1_coco_11_06_2017*
+*.idea
