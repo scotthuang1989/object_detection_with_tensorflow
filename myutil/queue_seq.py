@@ -24,12 +24,12 @@ class Queue_Seq(object):
         """
         element is a tupel: (frame_count, frame)
         """
-        logging.info("processed image: put")
+        logging.debug("processed image: put")
         if self.thread:
             while True:
                 self.lock.acquire()
                 if element[0] != self.current_frame + 1:
-                    logging.info(
+                    logging.debug(
                                 "frame count:{} -> current_frame:{}".format(
                                 element[0], self.current_frame))
                     self.lock.release()
@@ -43,7 +43,7 @@ class Queue_Seq(object):
         else:
             while True:
                 if element[0] != self.current_frame.value +1:
-                    logging.info("frame count:{} -> current_frame:{}".format(element[0], self.current_frame.value))
+                    logging.debug("frame count:{} -> current_frame:{}".format(element[0], self.current_frame.value))
                     self._event.wait()
                 else:
                     self.queue.put(element)
