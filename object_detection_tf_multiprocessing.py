@@ -156,10 +156,17 @@ def main():
     for p in detector_process:
         p.start()
 
+    last_frame = -1
     while True:
         frame_count, ann_image = processed_q.get()
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(ann_image,'FPS:{}'.format(int(fps.get_fps())),(50,50), font, 2,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(ann_image, 'FPS:{}'.format(int(fps.get_fps())), (50, 50), font, 2, (255, 255, 255), 2, cv2.LINE_AA)
+        # check frame order
+        if last_frame != -1:
+            if last_frame +1 != frame_count:
+                cv2.putText(ann_image, "Frame order error", (100,100), font, (0, 0, 255), 2, cv2.LINE_AA)
+        last_frame = frame_count
+
         cv2.imshow('frame', ann_image)
         # print("fps is:", fps.get_fps())
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -174,6 +181,7 @@ def main():
         p.join()
 
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
