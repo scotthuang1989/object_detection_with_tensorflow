@@ -25,14 +25,15 @@ arg_parser.add_argument('-p', "--process", type=int, default=1,
 args = arg_parser.parse_args()
 
 # What model to download.
+# MODEL_NAME = 'ssd_mobilenet_v1_coco_2017_11_08'
 MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017'
 
 
-def load_graph(model_name='ssd_mobilenet_v1_coco_11_06_2017'):
-    MODEL_FILE = MODEL_NAME + '.tar.gz'
+def load_graph(model_name=MODEL_NAME):
+    MODEL_FILE = model_name + '.tar.gz'
     DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
-    PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
+    PATH_TO_CKPT = model_name + '/frozen_inference_graph.pb'
     downloadutil.maybe_download(os.getcwd(), MODEL_FILE,
                                 DOWNLOAD_BASE+MODEL_FILE)
     tar_file = tarfile.open(MODEL_FILE)
@@ -99,7 +100,7 @@ def detect_object(detection_graph, sess, image, category_index):
             return image_np
 
 
-detection_graph = load_graph(model_name='ssd_mobilenet_v1_coco_11_06_2017')
+detection_graph = load_graph(model_name=MODEL_NAME)
 category_index = load_label_map(label_map_name='mscoco_label_map.pbtxt', num_class=NUM_CLASSES)
 
 image_q = Queue(maxsize=200)
@@ -164,7 +165,7 @@ def main():
         # check frame order
         if last_frame != -1:
             if last_frame +1 != frame_count:
-                cv2.putText(ann_image, "Frame order error", (100,100), font, (0, 0, 255), 2, cv2.LINE_AA)
+                cv2.putText(ann_image, "Frame order error", (100,100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
         last_frame = frame_count
 
         cv2.imshow('frame', ann_image)
