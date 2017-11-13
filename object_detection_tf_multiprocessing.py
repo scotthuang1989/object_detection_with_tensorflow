@@ -110,13 +110,16 @@ processed_q = queue_seq.Queue_Seq(maxsize=200)
 #a process that put imge into image_q
 
 def image_worker(image_q, video_file):
-    print("image worker start")
+    logging.info("image worker start")
     video_capture = cv2.VideoCapture(video_file)
     ret, frame = video_capture.read()
+    if not ret:
+        logging.error("Can not read video file, please check!!!!")
     frame_count = 0
     while ret:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         image_q.put((frame_count, frame))
+        logging.debug("put image into queue")
         ret, frame = video_capture.read()
         frame_count += 1
     video_capture.release()
