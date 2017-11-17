@@ -18,7 +18,6 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/argmax_matcher.proto',
   package='object_detection.protos',
-  syntax='proto2',
   serialized_pb=_b('\n,object_detection/protos/argmax_matcher.proto\x12\x17object_detection.protos\"\xca\x01\n\rArgMaxMatcher\x12\x1e\n\x11matched_threshold\x18\x01 \x01(\x02:\x03\x30.5\x12 \n\x13unmatched_threshold\x18\x02 \x01(\x02:\x03\x30.5\x12 \n\x11ignore_thresholds\x18\x03 \x01(\x08:\x05\x66\x61lse\x12,\n\x1enegatives_lower_than_unmatched\x18\x04 \x01(\x08:\x04true\x12\'\n\x18\x66orce_match_for_each_row\x18\x05 \x01(\x08:\x05\x66\x61lse')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -36,14 +35,14 @@ _ARGMAXMATCHER = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='matched_threshold', full_name='object_detection.protos.ArgMaxMatcher.matched_threshold', index=0,
       number=1, type=2, cpp_type=6, label=1,
-      has_default_value=True, default_value=float(0.5),
+      has_default_value=True, default_value=0.5,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='unmatched_threshold', full_name='object_detection.protos.ArgMaxMatcher.unmatched_threshold', index=1,
       number=2, type=2, cpp_type=6, label=1,
-      has_default_value=True, default_value=float(0.5),
+      has_default_value=True, default_value=0.5,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -76,7 +75,6 @@ _ARGMAXMATCHER = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],

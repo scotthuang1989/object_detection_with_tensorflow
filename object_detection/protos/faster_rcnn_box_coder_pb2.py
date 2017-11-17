@@ -18,7 +18,6 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/faster_rcnn_box_coder.proto',
   package='object_detection.protos',
-  syntax='proto2',
   serialized_pb=_b('\n3object_detection/protos/faster_rcnn_box_coder.proto\x12\x17object_detection.protos\"o\n\x12\x46\x61sterRcnnBoxCoder\x12\x13\n\x07y_scale\x18\x01 \x01(\x02:\x02\x31\x30\x12\x13\n\x07x_scale\x18\x02 \x01(\x02:\x02\x31\x30\x12\x17\n\x0cheight_scale\x18\x03 \x01(\x02:\x01\x35\x12\x16\n\x0bwidth_scale\x18\x04 \x01(\x02:\x01\x35')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -36,28 +35,28 @@ _FASTERRCNNBOXCODER = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='y_scale', full_name='object_detection.protos.FasterRcnnBoxCoder.y_scale', index=0,
       number=1, type=2, cpp_type=6, label=1,
-      has_default_value=True, default_value=float(10),
+      has_default_value=True, default_value=10,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='x_scale', full_name='object_detection.protos.FasterRcnnBoxCoder.x_scale', index=1,
       number=2, type=2, cpp_type=6, label=1,
-      has_default_value=True, default_value=float(10),
+      has_default_value=True, default_value=10,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='height_scale', full_name='object_detection.protos.FasterRcnnBoxCoder.height_scale', index=2,
       number=3, type=2, cpp_type=6, label=1,
-      has_default_value=True, default_value=float(5),
+      has_default_value=True, default_value=5,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='width_scale', full_name='object_detection.protos.FasterRcnnBoxCoder.width_scale', index=3,
       number=4, type=2, cpp_type=6, label=1,
-      has_default_value=True, default_value=float(5),
+      has_default_value=True, default_value=5,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -69,7 +68,6 @@ _FASTERRCNNBOXCODER = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],

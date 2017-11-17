@@ -17,13 +17,16 @@ Image2:
 
 ## Project Structure
 
-### From google
+### From google tensorflow/models
 object label and detecion api
-#### data
-label data
+#### data/
+label data for evaluation.
 
-#### object_detection
+#### object_detection/
 object_detection API implemented by google
+* commit: commit d710a97330152b9767f40f2554cda147d580cc5c
+* Date:   Wed Nov 15 10:01:54 2017 -0800
+
 
 ### My module
 

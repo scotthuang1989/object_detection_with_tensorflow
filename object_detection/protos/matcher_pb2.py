@@ -13,17 +13,16 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
-from object_detection.protos import argmax_matcher_pb2 as object__detection_dot_protos_dot_argmax__matcher__pb2
-from object_detection.protos import bipartite_matcher_pb2 as object__detection_dot_protos_dot_bipartite__matcher__pb2
+import object_detection.protos.argmax_matcher_pb2
+import object_detection.protos.bipartite_matcher_pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/matcher.proto',
   package='object_detection.protos',
-  syntax='proto2',
   serialized_pb=_b('\n%object_detection/protos/matcher.proto\x12\x17object_detection.protos\x1a,object_detection/protos/argmax_matcher.proto\x1a/object_detection/protos/bipartite_matcher.proto\"\xa4\x01\n\x07Matcher\x12@\n\x0e\x61rgmax_matcher\x18\x01 \x01(\x0b\x32&.object_detection.protos.ArgMaxMatcherH\x00\x12\x46\n\x11\x62ipartite_matcher\x18\x02 \x01(\x0b\x32).object_detection.protos.BipartiteMatcherH\x00\x42\x0f\n\rmatcher_oneof')
   ,
-  dependencies=[object__detection_dot_protos_dot_argmax__matcher__pb2.DESCRIPTOR,object__detection_dot_protos_dot_bipartite__matcher__pb2.DESCRIPTOR,])
+  dependencies=[object_detection.protos.argmax_matcher_pb2.DESCRIPTOR,object_detection.protos.bipartite_matcher_pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
@@ -58,7 +57,6 @@ _MATCHER = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
@@ -69,8 +67,8 @@ _MATCHER = _descriptor.Descriptor(
   serialized_end=326,
 )
 
-_MATCHER.fields_by_name['argmax_matcher'].message_type = object__detection_dot_protos_dot_argmax__matcher__pb2._ARGMAXMATCHER
-_MATCHER.fields_by_name['bipartite_matcher'].message_type = object__detection_dot_protos_dot_bipartite__matcher__pb2._BIPARTITEMATCHER
+_MATCHER.fields_by_name['argmax_matcher'].message_type = object_detection.protos.argmax_matcher_pb2._ARGMAXMATCHER
+_MATCHER.fields_by_name['bipartite_matcher'].message_type = object_detection.protos.bipartite_matcher_pb2._BIPARTITEMATCHER
 _MATCHER.oneofs_by_name['matcher_oneof'].fields.append(
   _MATCHER.fields_by_name['argmax_matcher'])
 _MATCHER.fields_by_name['argmax_matcher'].containing_oneof = _MATCHER.oneofs_by_name['matcher_oneof']

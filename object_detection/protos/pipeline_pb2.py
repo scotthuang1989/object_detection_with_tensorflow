@@ -13,19 +13,18 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
-from object_detection.protos import eval_pb2 as object__detection_dot_protos_dot_eval__pb2
-from object_detection.protos import input_reader_pb2 as object__detection_dot_protos_dot_input__reader__pb2
-from object_detection.protos import model_pb2 as object__detection_dot_protos_dot_model__pb2
-from object_detection.protos import train_pb2 as object__detection_dot_protos_dot_train__pb2
+import object_detection.protos.eval_pb2
+import object_detection.protos.input_reader_pb2
+import object_detection.protos.model_pb2
+import object_detection.protos.train_pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/pipeline.proto',
   package='object_detection.protos',
-  syntax='proto2',
   serialized_pb=_b('\n&object_detection/protos/pipeline.proto\x12\x17object_detection.protos\x1a\"object_detection/protos/eval.proto\x1a*object_detection/protos/input_reader.proto\x1a#object_detection/protos/model.proto\x1a#object_detection/protos/train.proto\"\xca\x02\n\x17TrainEvalPipelineConfig\x12\x36\n\x05model\x18\x01 \x01(\x0b\x32\'.object_detection.protos.DetectionModel\x12:\n\x0ctrain_config\x18\x02 \x01(\x0b\x32$.object_detection.protos.TrainConfig\x12@\n\x12train_input_reader\x18\x03 \x01(\x0b\x32$.object_detection.protos.InputReader\x12\x38\n\x0b\x65val_config\x18\x04 \x01(\x0b\x32#.object_detection.protos.EvalConfig\x12?\n\x11\x65val_input_reader\x18\x05 \x01(\x0b\x32$.object_detection.protos.InputReader')
   ,
-  dependencies=[object__detection_dot_protos_dot_eval__pb2.DESCRIPTOR,object__detection_dot_protos_dot_input__reader__pb2.DESCRIPTOR,object__detection_dot_protos_dot_model__pb2.DESCRIPTOR,object__detection_dot_protos_dot_train__pb2.DESCRIPTOR,])
+  dependencies=[object_detection.protos.eval_pb2.DESCRIPTOR,object_detection.protos.input_reader_pb2.DESCRIPTOR,object_detection.protos.model_pb2.DESCRIPTOR,object_detection.protos.train_pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
@@ -81,7 +80,6 @@ _TRAINEVALPIPELINECONFIG = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -89,11 +87,11 @@ _TRAINEVALPIPELINECONFIG = _descriptor.Descriptor(
   serialized_end=552,
 )
 
-_TRAINEVALPIPELINECONFIG.fields_by_name['model'].message_type = object__detection_dot_protos_dot_model__pb2._DETECTIONMODEL
-_TRAINEVALPIPELINECONFIG.fields_by_name['train_config'].message_type = object__detection_dot_protos_dot_train__pb2._TRAINCONFIG
-_TRAINEVALPIPELINECONFIG.fields_by_name['train_input_reader'].message_type = object__detection_dot_protos_dot_input__reader__pb2._INPUTREADER
-_TRAINEVALPIPELINECONFIG.fields_by_name['eval_config'].message_type = object__detection_dot_protos_dot_eval__pb2._EVALCONFIG
-_TRAINEVALPIPELINECONFIG.fields_by_name['eval_input_reader'].message_type = object__detection_dot_protos_dot_input__reader__pb2._INPUTREADER
+_TRAINEVALPIPELINECONFIG.fields_by_name['model'].message_type = object_detection.protos.model_pb2._DETECTIONMODEL
+_TRAINEVALPIPELINECONFIG.fields_by_name['train_config'].message_type = object_detection.protos.train_pb2._TRAINCONFIG
+_TRAINEVALPIPELINECONFIG.fields_by_name['train_input_reader'].message_type = object_detection.protos.input_reader_pb2._INPUTREADER
+_TRAINEVALPIPELINECONFIG.fields_by_name['eval_config'].message_type = object_detection.protos.eval_pb2._EVALCONFIG
+_TRAINEVALPIPELINECONFIG.fields_by_name['eval_input_reader'].message_type = object_detection.protos.input_reader_pb2._INPUTREADER
 DESCRIPTOR.message_types_by_name['TrainEvalPipelineConfig'] = _TRAINEVALPIPELINECONFIG
 
 TrainEvalPipelineConfig = _reflection.GeneratedProtocolMessageType('TrainEvalPipelineConfig', (_message.Message,), dict(

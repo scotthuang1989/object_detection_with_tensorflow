@@ -13,17 +13,16 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
-from object_detection.protos import faster_rcnn_pb2 as object__detection_dot_protos_dot_faster__rcnn__pb2
-from object_detection.protos import ssd_pb2 as object__detection_dot_protos_dot_ssd__pb2
+import object_detection.protos.faster_rcnn_pb2
+import object_detection.protos.ssd_pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/model.proto',
   package='object_detection.protos',
-  syntax='proto2',
   serialized_pb=_b('\n#object_detection/protos/model.proto\x12\x17object_detection.protos\x1a)object_detection/protos/faster_rcnn.proto\x1a!object_detection/protos/ssd.proto\"\x82\x01\n\x0e\x44\x65tectionModel\x12:\n\x0b\x66\x61ster_rcnn\x18\x01 \x01(\x0b\x32#.object_detection.protos.FasterRcnnH\x00\x12+\n\x03ssd\x18\x02 \x01(\x0b\x32\x1c.object_detection.protos.SsdH\x00\x42\x07\n\x05model')
   ,
-  dependencies=[object__detection_dot_protos_dot_faster__rcnn__pb2.DESCRIPTOR,object__detection_dot_protos_dot_ssd__pb2.DESCRIPTOR,])
+  dependencies=[object_detection.protos.faster_rcnn_pb2.DESCRIPTOR,object_detection.protos.ssd_pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
@@ -58,7 +57,6 @@ _DETECTIONMODEL = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
@@ -69,8 +67,8 @@ _DETECTIONMODEL = _descriptor.Descriptor(
   serialized_end=273,
 )
 
-_DETECTIONMODEL.fields_by_name['faster_rcnn'].message_type = object__detection_dot_protos_dot_faster__rcnn__pb2._FASTERRCNN
-_DETECTIONMODEL.fields_by_name['ssd'].message_type = object__detection_dot_protos_dot_ssd__pb2._SSD
+_DETECTIONMODEL.fields_by_name['faster_rcnn'].message_type = object_detection.protos.faster_rcnn_pb2._FASTERRCNN
+_DETECTIONMODEL.fields_by_name['ssd'].message_type = object_detection.protos.ssd_pb2._SSD
 _DETECTIONMODEL.oneofs_by_name['model'].fields.append(
   _DETECTIONMODEL.fields_by_name['faster_rcnn'])
 _DETECTIONMODEL.fields_by_name['faster_rcnn'].containing_oneof = _DETECTIONMODEL.oneofs_by_name['model']

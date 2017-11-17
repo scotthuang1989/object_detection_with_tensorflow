@@ -18,8 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/input_reader.proto',
   package='object_detection.protos',
-  syntax='proto2',
-  serialized_pb=_b('\n*object_detection/protos/input_reader.proto\x12\x17object_detection.protos\"\xff\x02\n\x0bInputReader\x12\x18\n\x0elabel_map_path\x18\x01 \x01(\t:\x00\x12\x15\n\x07shuffle\x18\x02 \x01(\x08:\x04true\x12\x1c\n\x0equeue_capacity\x18\x03 \x01(\r:\x04\x32\x30\x30\x30\x12\x1f\n\x11min_after_dequeue\x18\x04 \x01(\r:\x04\x31\x30\x30\x30\x12\x15\n\nnum_epochs\x18\x05 \x01(\r:\x01\x30\x12\x16\n\x0bnum_readers\x18\x06 \x01(\r:\x01\x38\x12\"\n\x13load_instance_masks\x18\x07 \x01(\x08:\x05\x66\x61lse\x12N\n\x16tf_record_input_reader\x18\x08 \x01(\x0b\x32,.object_detection.protos.TFRecordInputReaderH\x00\x12M\n\x15\x65xternal_input_reader\x18\t \x01(\x0b\x32,.object_detection.protos.ExternalInputReaderH\x00\x42\x0e\n\x0cinput_reader\"+\n\x13TFRecordInputReader\x12\x14\n\ninput_path\x18\x01 \x01(\t:\x00\"\x1c\n\x13\x45xternalInputReader*\x05\x08\x01\x10\xe8\x07')
+  serialized_pb=_b('\n*object_detection/protos/input_reader.proto\x12\x17object_detection.protos\"\xff\x02\n\x0bInputReader\x12\x18\n\x0elabel_map_path\x18\x01 \x01(\t:\x00\x12\x15\n\x07shuffle\x18\x02 \x01(\x08:\x04true\x12\x1c\n\x0equeue_capacity\x18\x03 \x01(\r:\x04\x32\x30\x30\x30\x12\x1f\n\x11min_after_dequeue\x18\x04 \x01(\r:\x04\x31\x30\x30\x30\x12\x15\n\nnum_epochs\x18\x05 \x01(\r:\x01\x30\x12\x16\n\x0bnum_readers\x18\x06 \x01(\r:\x01\x38\x12\"\n\x13load_instance_masks\x18\x07 \x01(\x08:\x05\x66\x61lse\x12N\n\x16tf_record_input_reader\x18\x08 \x01(\x0b\x32,.object_detection.protos.TFRecordInputReaderH\x00\x12M\n\x15\x65xternal_input_reader\x18\t \x01(\x0b\x32,.object_detection.protos.ExternalInputReaderH\x00\x42\x0e\n\x0cinput_reader\")\n\x13TFRecordInputReader\x12\x12\n\ninput_path\x18\x01 \x03(\t\"\x1c\n\x13\x45xternalInputReader*\x05\x08\x01\x10\xe8\x07')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -104,7 +103,6 @@ _INPUTREADER = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
@@ -125,8 +123,8 @@ _TFRECORDINPUTREADER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='input_path', full_name='object_detection.protos.TFRecordInputReader.input_path', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=True, default_value=_b("").decode('utf-8'),
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -138,12 +136,11 @@ _TFRECORDINPUTREADER = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
   serialized_start=457,
-  serialized_end=500,
+  serialized_end=498,
 )
 
 
@@ -162,12 +159,11 @@ _EXTERNALINPUTREADER = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=True,
-  syntax='proto2',
   extension_ranges=[(1, 1000), ],
   oneofs=[
   ],
-  serialized_start=502,
-  serialized_end=530,
+  serialized_start=500,
+  serialized_end=528,
 )
 
 _INPUTREADER.fields_by_name['tf_record_input_reader'].message_type = _TFRECORDINPUTREADER
