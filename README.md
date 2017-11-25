@@ -1,3 +1,10 @@
+**Warning**
+
+Here is the version of OS, main libs, other configuration is **not** tested and there is no plan for windows platform.
+* ubuntu 16.04
+* opencv 3.3.1
+* tensorflow 1.4
+
 ## Target
 
 * detect object in a video or from camera.
