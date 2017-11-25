@@ -7,6 +7,9 @@
 on my nvidia 1060 (6GB RAM ), the speed is ~20 frame per second, but gpu utilization
 is below 30%, I will use multiprocessing to speed up.
 
+Image0:
+![image1](./images/bigbang3_fps.png)
+
 Image1:
 ![image1](./images/bigbang1.png)
 
