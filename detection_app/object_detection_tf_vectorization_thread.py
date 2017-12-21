@@ -6,10 +6,9 @@ use Vectorization to speed up.
 """
 
 import os
-import tarfile
 import tensorflow as tf
-import multiprocessing
-from multiprocessing import Queue
+import threading
+from queue import Queue
 import argparse
 import logging
 import time
@@ -32,6 +31,8 @@ args = arg_parser.parse_args()
 # What model to download.
 # MODEL_NAME = 'ssd_mobilenet_v1_coco_2017_11_08'
 MODEL_NAME = 'my_exporter'
+
+LABEL_FILE_NAME = "pascal_label_map.pbtxt"
 
 
 def load_graph(model_name=MODEL_NAME):
@@ -63,8 +64,10 @@ def load_label_map(label_map_name, num_class):
     PATH_TO_LABELS = os.path.join('data', label_map_name)
     # load label map
     label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
-    categories = label_map_util.convert_label_map_to_categories(label_map,
-                                max_num_classes=num_class, use_display_name=True)
+    categories = label_map_util.convert_label_map_to_categories(
+                                label_map,
+                                max_num_classes=num_class,
+                                use_display_name=True)
     category_index = label_map_util.create_category_index(categories)
     return category_index
 
@@ -157,17 +160,18 @@ def main():
     )
     image_q = Queue(maxsize=200)
     processed_q = Queue(maxsize=200)
-    input_process = multiprocessing.Process(target=image_worker, args=(image_q, args.video))
+    input_process = [threading.Thread(target=image_worker, args=(image_q, args.video)) for i in range(2)]
     detection_graph = load_graph(model_name=MODEL_NAME)
-    category_index = load_label_map(label_map_name='mscoco_label_map.pbtxt', num_class=NUM_CLASSES)
+    category_index = load_label_map(label_map_name=LABEL_FILE_NAME, num_class=NUM_CLASSES)
 
     # setup fps counter
     fps = fps_measure.FPS()
     fps.start_count()
-    detector_process = multiprocessing.Process(
+    detector_process = threading.Thread(
                         target=object_detection_worker,
                         args=(image_q, processed_q, detection_graph, category_index, fps))
-    input_process.start()
+    for input in input_process:
+      input.start()
     detector_process.start()
 
     while True:
