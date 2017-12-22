@@ -34,6 +34,8 @@ MODEL_NAME = 'my_exporter'
 
 LABEL_FILE_NAME = "pascal_label_map.pbtxt"
 
+MAX_STEPS = 1000
+
 
 def load_graph(model_name=MODEL_NAME):
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
@@ -88,69 +90,65 @@ def detect_object(detection_graph, sess, image, category_index):
             (boxes, scores, classes, num) = sess.run(
               [detection_boxes, detection_scores, detection_classes, num_detections],
               feed_dict={image_tensor: image})
-            # Visualization of the results of a detection.
-            for i in range(image.shape[0]):
-              vis_util.visualize_boxes_and_labels_on_image_array(
-                image[0],
-                np.squeeze(boxes[0]),
-                np.squeeze(classes[0]).astype(np.int32),
-                np.squeeze(scores[0]),
-                category_index,
-                use_normalized_coordinates=True,
-                line_thickness=8,
-                min_score_thresh=0.7)
             return image
+            # Visualization of the results of a detection.
+            # for i in range(image.shape[0]):
+            #   vis_util.visualize_boxes_and_labels_on_image_array(
+            #     image[0],
+            #     np.squeeze(boxes[0]),
+            #     np.squeeze(classes[0]).astype(np.int32),
+            #     np.squeeze(scores[0]),
+            #     category_index,
+            #     use_normalized_coordinates=True,
+            #     line_thickness=8,
+            #     min_score_thresh=0.7)
+            # return image
 
 
-def image_worker(image_q, video_file):
+def image_worker(image_q, video_file, max_step=MAX_STEPS):
     """Process that put imge into image_q."""
     logging.info("image worker start")
     video_capture = cv2.VideoCapture(video_file)
     ret, frame = video_capture.read()
     if not ret:
         logging.error("Can not read video file, please check!!!!")
-    frame_count = 0
-    while ret:
+    while ret and max_step:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image_q.put((frame_count, frame))
+        image_q.put(frame)
         logging.debug("put image into queue")
         ret, frame = video_capture.read()
-        frame_count += 1
+        max_step -= 1
     video_capture.release()
 
 
 def get_n_frame(f_queue, n):
   multi_images = None
-  counts = n
-  b_time = time.time()
-  while n > 0:
-    # logging.debug("get image need: %d" % (n,))
-    _, image = f_queue.get()
+  for i in range(n):
+    image = f_queue.get()
     image = np.expand_dims(image, axis=0)
     if isinstance(multi_images, np.ndarray):
       multi_images = np.concatenate([multi_images, image])
     else:
       multi_images = image
-    n -= 1
-  logging.info("get %d frames, internal: %f" % (counts, time.time() - b_time))
   return multi_images
 
 
-def object_detection_worker(image_q, processed_q, detection_graph, category_index, fps=None):
+def object_detection_worker(image_q, processed_q, detection_graph, category_index, fps=None, max_step=MAX_STEPS):
     """a process to do the detection_graph."""
     logging.info("detection worker start")
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
     sess = tf.Session(graph=detection_graph, config=config)
-    while True:
-        frame = get_n_frame(image_q, 4)
+    while True and max_step:
+        frame = get_n_frame(image_q, 16)
+        max_step -= 4
         # print("image shape:", frame.shape)
         ann_image = detect_object(detection_graph, sess, frame, category_index)
         for img in ann_image:
           img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
           if fps:
               fps.add_frame()
-          processed_q.put((0, img))
+          processed_q.put(img)
 
 
 def main():
@@ -159,34 +157,52 @@ def main():
         level=logging.INFO,
     )
     image_q = Queue(maxsize=200)
-    processed_q = Queue(maxsize=200)
-    input_process = [threading.Thread(target=image_worker, args=(image_q, args.video)) for i in range(2)]
+    # processed_q = Queue(maxsize=200)
+    input_process = [threading.Thread(target=image_worker, args=(image_q, args.video)) for i in range(1)]
     detection_graph = load_graph(model_name=MODEL_NAME)
     category_index = load_label_map(label_map_name=LABEL_FILE_NAME, num_class=NUM_CLASSES)
 
     # setup fps counter
     fps = fps_measure.FPS()
     fps.start_count()
-    detector_process = threading.Thread(
-                        target=object_detection_worker,
-                        args=(image_q, processed_q, detection_graph, category_index, fps))
+    # detector_process = threading.Thread(
+    #                     target=object_detection_worker,
+    #                     args=(image_q, processed_q, detection_graph, category_index, fps))
     for input in input_process:
       input.start()
-    detector_process.start()
+    # detector_process.start()
 
-    while True:
-        frame_count, ann_image = processed_q.get()
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(ann_image, 'FPS:{}'.format(int(fps.get_fps())), (50, 50), font, 2, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow('frame', ann_image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    max_step = MAX_STEPS
+    # while True and max_step:
+    #     max_step -= 1
+    #     ann_image = processed_q.get()
+    #     font = cv2.FONT_HERSHEY_SIMPLEX
+    #     cv2.putText(ann_image, 'FPS:{}'.format(int(fps.get_fps())), (50, 50), font, 2, (255, 255, 255), 2, cv2.LINE_AA)
+    #     cv2.imshow('frame', ann_image)
+    #     if cv2.waitKey(1) & 0xFF == ord('q'):
+    #         break
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+    sess = tf.Session(graph=detection_graph, config=config)
+    IMAGE_NUM = 8
+    while True and max_step:
+        frames = get_n_frame(image_q, IMAGE_NUM)
+        max_step -= IMAGE_NUM
+        # print("image shape:", frame.shape)
+        ann_images = detect_object(detection_graph, sess, frames, category_index)
+        for img in ann_images:
+          img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+          if fps:
+              fps.add_frame()
+          cv2.putText(img, 'FPS:{}'.format(int(fps.get_fps())), (50, 50), font, 2, (255, 255, 255), 2, cv2.LINE_AA)
+          cv2.imshow('frame', img)
+          if cv2.waitKey(1) & 0xFF == ord('q'):
+              break
 
-    input_process.terminate()
-    detector_process.terminate()
-
-    input_process.join()
-    detector_process.join()
+    for input in input_process:
+      input.join()
+    # detector_process.join()
 
     cv2.destroyAllWindows()
 
