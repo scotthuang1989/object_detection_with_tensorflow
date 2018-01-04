@@ -23,6 +23,7 @@ from object_detection.utils import visualization_utils as vis_util
 
 LABEL_FILE_NAME = "pascal_label_map.pbtxt"
 NUM_CLASSES = 90
+image_per_run = 8
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-v', '--video', type=str, required=True,
@@ -91,28 +92,14 @@ def detect_object(detection_graph, sess, image, image_list, category_index):
             detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
             num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
-            # TODO: find a better way
-            image_ph0 = detection_graph.get_tensor_by_name("image_ph0:0")
-            image_ph1 = detection_graph.get_tensor_by_name("image_ph1:0")
-            image_ph2 = detection_graph.get_tensor_by_name("image_ph2:0")
-            image_ph3 = detection_graph.get_tensor_by_name("image_ph3:0")
-            image_ph4 = detection_graph.get_tensor_by_name("image_ph4:0")
-            image_ph5 = detection_graph.get_tensor_by_name("image_ph5:0")
-            image_ph6 = detection_graph.get_tensor_by_name("image_ph6:0")
-            image_ph7 = detection_graph.get_tensor_by_name("image_ph7:0")
+            # build feed_dict
+            feed_dict = {}
+            for i in range(image_per_run):
+              feed_dict.update({"image_ph%d:0" % i: image_list[i]})
 
             # Actual detection.
             feed_image = sess.run(image,
-                                  feed_dict={
-                                    image_ph0: image_list[0],
-                                    image_ph1: image_list[1],
-                                    image_ph2: image_list[2],
-                                    image_ph3: image_list[3],
-                                    image_ph4: image_list[4],
-                                    image_ph5: image_list[5],
-                                    image_ph6: image_list[6],
-                                    image_ph7: image_list[7],
-                                    })
+                                  feed_dict=feed_dict)
 
             (boxes, scores, classes, num) = sess.run(
               [detection_boxes, detection_scores, detection_classes, num_detections],
@@ -169,7 +156,6 @@ def object_detection_worker(image_q, processed_q, detection_graph, category_inde
     config = tf.ConfigProto(gpu_options=gpu_options)
     sess = tf.Session(graph=detection_graph, config=config)
 
-    image_per_run = 8
     with detection_graph.as_default():
       image_ph_list = [tf.placeholder(tf.uint8, shape=[], name="image_ph%d" % i)
                        for i in range(image_per_run)]
