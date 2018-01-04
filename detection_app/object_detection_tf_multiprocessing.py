@@ -83,6 +83,7 @@ def detect_object(detection_graph, sess, image, category_index):
             image_np = image
             # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
             image_np_expanded = np.expand_dims(image_np, axis=0)
+            test_var = tf.placeholder(dtype=tf.int8, shape=[])
             # Actual detection.
             (boxes, scores, classes, num) = sess.run(
               [detection_boxes, detection_scores, detection_classes, num_detections],
