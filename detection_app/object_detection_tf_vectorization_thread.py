@@ -12,6 +12,7 @@ import argparse
 import logging
 import time
 from queue import Queue
+import queue
 
 import numpy as np
 import cv2
@@ -29,6 +30,8 @@ arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-v', '--video', type=str, required=True,
                         help="video file for detection")
 arg_parser.add_argument('-m', '--model', type=str, default='my_exporter',
+                        help='directory to find model')
+arg_parser.add_argument('-s', '--save', type=bool, default=False,
                         help='directory to find model')
 
 args = arg_parser.parse_args()
@@ -52,6 +55,7 @@ class SAFE_NUM():
 
 
 is_quit = SAFE_NUM(0)
+video_end = SAFE_NUM(0)
 
 
 def load_graph(model_name=args.model):
@@ -115,7 +119,7 @@ def detect_object(detection_graph, sess, image, image_list, category_index):
                 category_index,
                 use_normalized_coordinates=True,
                 line_thickness=8,
-                min_score_thresh=0.7)
+                min_score_thresh=0.20)
             return feed_image
 
 
@@ -133,6 +137,7 @@ def image_worker(image_q, video_file):
         image_q.put(frame)
         logging.debug("put image into queue")
         ret, frame = video_capture.read()
+    video_end.set_num(1)
     video_capture.release()
 
 
@@ -142,7 +147,15 @@ def get_n_frame(f_queue, n):
   b_time = time.time()
   while n > 0:
     # logging.debug("get image need: %d" % (n,))
-    image = f_queue.get()
+    if video_end.get_num():
+      try:
+        image = f_queue.get(block=False)
+      except queue.Empty:
+        # video file reached the end and image queue is empty, break
+        break
+    else:
+      image = f_queue.get()
+    # image = cv2.resize(image, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
     multi_images.append(image)
     n -= 1
   logging.info("get %d frames, internal: %f" % (counts, time.time() - b_time))
@@ -150,71 +163,84 @@ def get_n_frame(f_queue, n):
 
 
 def object_detection_worker(image_q, processed_q, detection_graph, category_index, fps=None):
-    """a process to do the detection_graph."""
-    logging.info("detection worker start")
-    gpu_options = tf.GPUOptions(allow_growth=True)
-    config = tf.ConfigProto(gpu_options=gpu_options)
-    sess = tf.Session(graph=detection_graph, config=config)
+  """a process to do the detection_graph."""
+  logging.info("detection worker start")
+  gpu_options = tf.GPUOptions(allow_growth=True)
+  config = tf.ConfigProto(gpu_options=gpu_options)
+  sess = tf.Session(graph=detection_graph, config=config)
 
-    with detection_graph.as_default():
-      image_ph_list = [tf.placeholder(tf.uint8, shape=[], name="image_ph%d" % i)
-                       for i in range(image_per_run)]
+  with detection_graph.as_default():
+    image_ph_list = [tf.placeholder(tf.uint8, shape=[], name="image_ph%d" % i)
+                     for i in range(image_per_run)]
 
-      frames = tf.stack(image_ph_list)
+    frames = tf.stack(image_ph_list)
+
     while True:
-        if is_quit.get_num():
-          # before break, try to get some image, incase image worker is blocked.
-          image_q.get(block=False)
-          break
-        images_list = get_n_frame(image_q, image_per_run)
-        # print("image shape:", frame.shape)
-        ann_image = detect_object(detection_graph, sess, frames, images_list, category_index)
-        for img in ann_image:
-          img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-          if fps:
-              fps.add_frame()
-          processed_q.put(img)
+      if is_quit.get_num() == 1:
+        # before break, try to get some image, in case image worker is blocked.
+        image_q.get(block=False)
+        break
+      images_list = get_n_frame(image_q, image_per_run)
+      # print("image shape:", frame.shape)
+      if len(images_list) == 0:
+        break
+      ann_image = detect_object(detection_graph, sess, frames, images_list, category_index)
+      for img in ann_image:
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        if fps:
+            fps.add_frame()
+        processed_q.put(img)
 
 
 def main():
-    # configure logger
-    logging.basicConfig(
-        level=logging.INFO,
-    )
-    image_q = Queue(maxsize=200)
-    processed_q = Queue(maxsize=200)
-    # setup image input thread
-    input_process = threading.Thread(target=image_worker, args=(image_q, args.video))
-    detection_graph = load_graph(model_name=args.model)
-    category_index = load_label_map(label_map_name=LABEL_FILE_NAME, num_class=NUM_CLASSES)
+  # configure logger
+  logging.basicConfig(
+      level=logging.INFO,
+  )
+  image_q = Queue(maxsize=200)
+  processed_q = Queue(maxsize=200)
+  # setup image input thread
+  input_process = threading.Thread(target=image_worker, args=(image_q, args.video))
+  detection_graph = load_graph(model_name=args.model)
+  category_index = load_label_map(label_map_name=LABEL_FILE_NAME, num_class=NUM_CLASSES)
 
-    # setup fps counter
-    fps = fps_measure.FPS()
-    fps.start_count()
-    # setup object detection process
-    detector_process = threading.Thread(
-                        target=object_detection_worker,
-                        args=(image_q, processed_q, detection_graph, category_index, fps))
-    input_process.start()
-    detector_process.start()
+  # setup fps counter
+  fps = fps_measure.FPS()
+  fps.start_count()
+  # setup object detection process
+  detector_process = threading.Thread(
+                      target=object_detection_worker,
+                      args=(image_q, processed_q, detection_graph, category_index, fps))
+  input_process.start()
+  detector_process.start()
 
-    while True:
-        ann_image = processed_q.get()
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(ann_image, 'FPS:{}'.format(int(fps.get_fps())), (50, 50), font, 2, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow('frame', ann_image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            is_quit.set_num(1)
-            break
+  if args.save:
+    print("open video handle")
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    out = cv2.VideoWriter('output.avi', fourcc, 20, (512, 288))
 
-    # input_process.terminate()
-    # detector_process.terminate()
-    #
-    # input_process.join()
-    # detector_process.join()
+  while True and (is_quit.get_num() == 0):
+      ann_image = processed_q.get()
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      cv2.putText(ann_image, 'FPS:{}'.format(int(fps.get_fps())), (50, 50), font, 2, (255, 255, 255), 2, cv2.LINE_AA)
+      if args.save:
+        print("write into video", ann_image.shape)
+        out.write(ann_image)
+      cv2.imshow('frame', ann_image)
+      if cv2.waitKey(1) & 0xFF == ord('q'):
+          is_quit.set_num(1)
+          break
 
-    cv2.destroyAllWindows()
+  # input_process.terminate()
+  # detector_process.terminate()
+  #
+  # input_process.join()
+  # detector_process.join()
+  print("release vcideo handle")
+  if args.save:
+    out.release()
+  cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    main()
+  main()
