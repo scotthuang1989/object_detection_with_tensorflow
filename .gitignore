@@ -103,4 +103,6 @@ ENV/
 *frozen_inference_graph.pb
 *.idea
 *.mp4
+*.avi
 *.record
+*ssd_inception_v2_pascal_retrain
